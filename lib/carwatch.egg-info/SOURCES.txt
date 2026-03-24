@@ -3,6 +3,7 @@ VERSION
 pyproject.toml
 bin/fw-crawl
 bin/fw-recheck
+bin/fw-tui
 lib/finnwatch_core.py
 lib/finnwatch_tui.py
 lib/carwatch.egg-info/PKG-INFO

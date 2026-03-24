@@ -1,2 +1,0 @@
-[console_scripts]
-fw-tui = finnwatch_tui:main

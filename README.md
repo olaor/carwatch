@@ -4,6 +4,12 @@ Monitor finn.no classifieds for changes. Crawls search result pages, stores per-
 
 ## Changelog
 
+### 0.1.3 — 2026-03-24
+
+- fix(install): remove stale `[console_scripts]` entry from egg-info that caused
+  the deb build to install `fw-tui` as a plain Python wrapper instead of the
+  bash venv-bootstrap script; add `bin/fw-tui` to `SOURCES.txt`
+
 ### 0.1.2 — 2026-03-24
 
 - fix(install): install `fw-tui` as a bash script-file instead of a Python entry
