@@ -25,11 +25,15 @@ if [[ -f "$ROOT/lib/finnwatch_tui.py" ]]; then
     # Source-tree / development run.
     VENV="$ROOT/.venv"
     EXTRA_PYTHONPATH="$ROOT/lib"
+    VENV_OPTS=()
 else
     # System-wide install (deb package): use a per-user venv so we never need
-    # root and the system Python is kept clean.
+    # root and the system Python is kept clean.  --system-site-packages lets
+    # the venv Python reach finnwatch_tui and finnwatch_core which are
+    # installed into /usr/lib/python3/dist-packages/ by the deb package.
     VENV="${XDG_DATA_HOME:-$HOME/.local/share}/finnwatch/venv"
     EXTRA_PYTHONPATH=""
+    VENV_OPTS=(--system-site-packages)
 fi
 
 PYTHON="$VENV/bin/python"
@@ -39,7 +43,7 @@ PIP="$VENV/bin/pip"
 if [[ ! -x "$PYTHON" ]]; then
     echo "Creating virtual environment at $VENV …"
     mkdir -p "$(dirname "$VENV")"
-    python3 -m venv "$VENV"
+    python3 -m venv "${VENV_OPTS[@]}" "$VENV"
     echo "Virtual environment created."
 fi
 

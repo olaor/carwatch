@@ -4,6 +4,13 @@ Monitor finn.no classifieds for changes. Crawls search result pages, stores per-
 
 ## Changelog
 
+### 0.1.5 — 2026-03-24
+
+- fix(pkg): install the real `fw-tui` bash script into the deb package instead
+  of replacing it with a minimal Python one-liner; create the per-user venv with
+  `--system-site-packages` so `finnwatch_tui`/`finnwatch_core` from
+  `/usr/lib/python3/dist-packages/` are visible; add `bash` to deb `Depends:`
+
 ### 0.1.4 — 2026-03-24
 
 - refactor: rename project from `carwatch` to `finnwatch` across pyproject.toml, README, release workflow, and egg-info

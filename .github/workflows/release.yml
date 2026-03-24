@@ -55,18 +55,16 @@ jobs:
           install -m 755 bin/fw-crawl   "${PKG_DIR}/usr/bin/fw-crawl"
           install -m 755 bin/fw-recheck "${PKG_DIR}/usr/bin/fw-recheck"
 
-          # fw-tui is a venv-bootstrapping dev launcher; replace it with a
-          # minimal entry point that calls the installed module directly.
-          printf '#!/usr/bin/env python3\nfrom finnwatch_tui import main\nmain()\n' \
-            > "${PKG_DIR}/usr/bin/fw-tui"
-          chmod 755 "${PKG_DIR}/usr/bin/fw-tui"
+          # fw-tui is a bash script that bootstraps a per-user venv on first
+          # run – install it as-is so the venv logic is preserved.
+          install -m 755 bin/fw-tui "${PKG_DIR}/usr/bin/fw-tui"
 
           {
             echo "Package: finnwatch"
             echo "Version: ${VERSION}"
             echo "Architecture: all"
             echo "Maintainer: finnwatch <noreply@github.com>"
-            echo "Depends: python3 (>= 3.8), python3-requests, python3-bs4"
+            echo "Depends: bash, python3 (>= 3.8), python3-requests, python3-bs4"
             echo "Recommends: python3-rich, python3-textual"
             echo "Description: Monitor finn.no classifieds for changes"
             echo " Crawls finn.no search result pages and stores per-ad snapshots in a"
