@@ -1011,11 +1011,12 @@ def patch_snapshot_from_listing(
     return record_snapshot(db, finnkode, merged)
 
 
-def process_ads(db: sqlite3.Connection, skip: set) -> None:
+def process_ads(db: sqlite3.Connection, skip: set, max_ads: int | None = None) -> None:
     """
     Re-fetch detail pages for all active ads and save snapshots when
     anything has changed.  Ads in *skip* have already been processed
     in this run (initial snapshot) and are skipped to avoid double-fetching.
+    When *max_ads* is set, stop after processing that many ads.
     """
     rows = db.execute(
         "SELECT finnkode, url FROM ads WHERE is_active = 1 ORDER BY last_checked ASC"
@@ -1024,6 +1025,7 @@ def process_ads(db: sqlite3.Connection, skip: set) -> None:
     total    = len(rows)
     updated  = 0
     inactive = 0
+    processed = 0
 
     for i, row in enumerate(rows, 1):
         fk  = row["finnkode"]
@@ -1031,6 +1033,10 @@ def process_ads(db: sqlite3.Connection, skip: set) -> None:
 
         if fk in skip:
             continue
+
+        if max_ads is not None and processed >= max_ads:
+            log.info("Reached --max limit of %d ads, stopping early", max_ads)
+            break
 
         log.info("[%d/%d] Checking %s", i, total, fk)
         detail = scrape_detail(url, fk)
@@ -1046,6 +1052,7 @@ def process_ads(db: sqlite3.Connection, skip: set) -> None:
 
         changed = record_snapshot(db, fk, detail)
         db.commit()
+        processed += 1
 
         if changed:
             log.info("  Change detected and snapshot saved for %s", fk)

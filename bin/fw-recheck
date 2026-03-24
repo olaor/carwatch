@@ -13,6 +13,7 @@ Designed to be run less frequently from cron, e.g.:
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -23,13 +24,20 @@ from finnwatch_core import get_db, log, process_ads
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Re-check active ads for changes.")
+    parser.add_argument(
+        "--max", metavar="X", type=int, default=None,
+        help="Stop after processing X ads.",
+    )
+    args = parser.parse_args()
+
     log.info("=" * 60)
     log.info("fw-recheck starting")
 
     db = get_db()
 
     try:
-        process_ads(db, skip=set())
+        process_ads(db, skip=set(), max_ads=args.max)
     except KeyboardInterrupt:
         log.info("Interrupted – committing pending work and exiting")
         db.commit()
