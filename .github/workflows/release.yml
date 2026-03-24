@@ -32,13 +32,13 @@ jobs:
         run: |
           pip install build
           python -m build
-          # Produces dist/carwatch-<version>-py3-none-any.whl and dist/carwatch-<version>.tar.gz
+          # Produces dist/finnwatch-<version>-py3-none-any.whl and dist/finnwatch-<version>.tar.gz
 
       # ── Debian package ────────────────────────────────────────────────────────
       - name: Build Debian package
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          PKG_DIR="carwatch_${VERSION}_all"
+          PKG_DIR="finnwatch_${VERSION}_all"
 
           mkdir -p "${PKG_DIR}/DEBIAN"
           mkdir -p "${PKG_DIR}/usr/bin"
@@ -62,10 +62,10 @@ jobs:
           chmod 755 "${PKG_DIR}/usr/bin/fw-tui"
 
           {
-            echo "Package: carwatch"
+            echo "Package: finnwatch"
             echo "Version: ${VERSION}"
             echo "Architecture: all"
-            echo "Maintainer: carwatch <noreply@github.com>"
+            echo "Maintainer: finnwatch <noreply@github.com>"
             echo "Depends: python3 (>= 3.8), python3-requests, python3-bs4"
             echo "Recommends: python3-rich, python3-textual"
             echo "Description: Monitor finn.no classifieds for changes"
@@ -75,7 +75,7 @@ jobs:
           } > "${PKG_DIR}/DEBIAN/control"
 
           dpkg-deb --root-owner-group --build "${PKG_DIR}"
-          # Output: carwatch_<version>_all.deb
+          # Output: finnwatch_<version>_all.deb
 
       # ── GitHub release ────────────────────────────────────────────────────────
       - name: Create GitHub release
@@ -87,4 +87,4 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
-            carwatch_${{ steps.version.outputs.version }}_all.deb
+            finnwatch_${{ steps.version.outputs.version }}_all.deb

@@ -6,9 +6,9 @@ bin/fw-recheck
 bin/fw-tui
 lib/finnwatch_core.py
 lib/finnwatch_tui.py
-lib/carwatch.egg-info/PKG-INFO
-lib/carwatch.egg-info/SOURCES.txt
-lib/carwatch.egg-info/dependency_links.txt
-lib/carwatch.egg-info/entry_points.txt
-lib/carwatch.egg-info/requires.txt
-lib/carwatch.egg-info/top_level.txt
+lib/finnwatch.egg-info/PKG-INFO
+lib/finnwatch.egg-info/SOURCES.txt
+lib/finnwatch.egg-info/dependency_links.txt
+lib/finnwatch.egg-info/entry_points.txt
+lib/finnwatch.egg-info/requires.txt
+lib/finnwatch.egg-info/top_level.txt

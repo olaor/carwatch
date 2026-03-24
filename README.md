@@ -1,8 +1,12 @@
-# carwatch
+# finnwatch
 
 Monitor finn.no classifieds for changes. Crawls search result pages, stores per-ad snapshots in a local SQLite database, detects field-level changes over time, and presents results in an interactive terminal UI.
 
 ## Changelog
+
+### 0.1.4 — 2026-03-24
+
+- refactor: rename project from `carwatch` to `finnwatch` across pyproject.toml, README, release workflow, and egg-info
 
 ### 0.1.3 — 2026-03-24
 
