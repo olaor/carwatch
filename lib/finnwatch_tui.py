@@ -271,7 +271,7 @@ class FinnWatchTUI(App):
         active_before = str(tc.active or "")
 
         for pane in list(tc.query(TabPane)):
-            await pane.remove()
+            await tc.remove_pane(pane.id)
 
         if not self._types:
             await tc.add_pane(

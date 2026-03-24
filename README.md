@@ -4,6 +4,13 @@ Monitor finn.no classifieds for changes. Crawls search result pages, stores per-
 
 ## Changelog
 
+### 0.1.6 — 2026-03-24
+
+- fix(tui): use `tc.remove_pane()` instead of `pane.remove()` in `_rebuild` to
+  prevent `DuplicateIds` crash on refresh; `pane.remove()` left the internal
+  `ContentTab` header registered in the `Tabs` bar, causing a collision when
+  the same tab IDs were re-added
+
 ### 0.1.5 — 2026-03-24
 
 - fix(pkg): install the real `fw-tui` bash script into the deb package instead
