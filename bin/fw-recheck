@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""
+fw-recheck – Re-fetch detail pages for all active ads and record any changes.
+
+For every ad currently marked active in the database, fetches the detail page
+and compares it against the most recent snapshot.  When something has changed
+a new snapshot is stored and the exact field-level diffs are written to
+ad_field_changes.  Ads that can no longer be fetched are marked inactive.
+
+Designed to be run less frequently from cron, e.g.:
+  0 * * * * /home/oo/src/carwatch/.venv/bin/python /home/oo/src/carwatch/bin/fw-recheck
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# Allow importing finnwatch_core from lib/ regardless of cwd.
+sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
+
+from finnwatch_core import get_db, log, process_ads
+
+
+def main() -> None:
+    log.info("=" * 60)
+    log.info("fw-recheck starting")
+
+    db = get_db()
+
+    try:
+        process_ads(db, skip=set())
+    except KeyboardInterrupt:
+        log.info("Interrupted – committing pending work and exiting")
+        db.commit()
+
+    log.info("fw-recheck done")
+    db.close()
+
+
+if __name__ == "__main__":
+    main()

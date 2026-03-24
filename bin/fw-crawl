@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""
+fw-crawl – Crawl finn.no search pages and store initial snapshots for new ads.
+
+Reads search URLs from search_urls.txt (one per line; # = comment), paginates
+through each search, upserts every discovered ad into the database, and fetches
+a detail-page snapshot for any ad that has not been seen before.
+
+Designed to be run frequently from cron, e.g.:
+  */15 * * * * /home/oo/src/carwatch/.venv/bin/python /home/oo/src/carwatch/bin/fw-crawl
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# Allow importing finnwatch_core from lib/ regardless of cwd.
+sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
+
+from finnwatch_core import (
+    SEARCH_URLS_FILE,
+    crawl_search,
+    get_db,
+    load_search_urls,
+    log,
+    patch_snapshot_from_listing,
+    record_snapshot,
+    scrape_detail,
+)
+
+
+def main() -> None:
+    log.info("=" * 60)
+    log.info("fw-crawl starting")
+
+    db = get_db()
+
+    try:
+        # ── Load search URLs ──────────────────────────────────────────────────
+        try:
+            search_urls = load_search_urls()
+        except FileNotFoundError as exc:
+            log.error("%s", exc)
+            sys.exit(1)
+
+        if not search_urls:
+            log.warning("No search URLs found in %s – nothing to do.", SEARCH_URLS_FILE)
+            sys.exit(0)
+
+        log.info("Loaded %d search URL(s) from %s", len(search_urls), SEARCH_URLS_FILE)
+
+        # ── Crawl every search URL ────────────────────────────────────────────
+        all_found: dict = {}
+        for search_url in search_urls:
+            log.info("── Crawling search: %s", search_url)
+            found = crawl_search(db, search_url)
+            all_found.update(found)
+
+        # ── Split found ads into new (no snapshot) vs existing ────────────────
+        new_fks: set = set()
+        existing_fks: set = set()
+        for fk in all_found:
+            count = db.execute(
+                "SELECT COUNT(*) FROM ad_snapshots WHERE finnkode = ?", (fk,)
+            ).fetchone()[0]
+            if count == 0:
+                new_fks.add(fk)
+            else:
+                existing_fks.add(fk)
+
+        log.info("%d new ads discovered (no snapshot yet)", len(new_fks))
+
+        # ── Fetch initial snapshot for each brand-new ad ──────────────────────
+        for fk in new_fks:
+            row = db.execute("SELECT url FROM ads WHERE finnkode = ?", (fk,)).fetchone()
+            if not row:
+                continue
+            detail = scrape_detail(row["url"], fk)
+            if detail is None:
+                log.warning("Could not fetch detail for new ad %s", fk)
+                continue
+            # Merge search-result fields (year, mileage, …) into detail as fallback
+            listing = all_found.get(fk, {})
+            for field in ("year", "mileage", "make", "fuel_type", "transmission"):
+                if listing.get(field) is not None and not detail.get(field):
+                    detail[field] = listing[field]
+            record_snapshot(db, fk, detail)
+            db.commit()
+            log.info(
+                "Initial snapshot saved for new ad %s  [%s]",
+                fk, detail.get("title", ""),
+            )
+
+        # ── Patch existing ads with listing fields they may be missing ─────────
+        patched = 0
+        for fk in existing_fks:
+            if patch_snapshot_from_listing(db, fk, all_found[fk]):
+                db.commit()
+                patched += 1
+        if patched:
+            log.info("Patched %d existing snapshots with search-listing data", patched)
+
+    except KeyboardInterrupt:
+        log.info("Interrupted – committing pending work and exiting")
+        db.commit()
+
+    log.info("fw-crawl done")
+    db.close()
+
+
+if __name__ == "__main__":
+    main()
