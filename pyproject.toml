@@ -15,11 +15,6 @@ dependencies = [
     "rich",
 ]
 
-# fw-tui is a bash venv-manager intended for dev use; for installed environments
-# we expose a direct Python entry point instead.
-[project.scripts]
-fw-tui = "finnwatch_tui:main"
-
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}
 
@@ -29,4 +24,4 @@ py-modules = ["finnwatch_core", "finnwatch_tui"]
 package-dir = {"" = "lib"}
 # fw-crawl and fw-recheck are standalone Python scripts; their sys.path.insert
 # is harmless when installed because the modules are already on the Python path.
-script-files = ["bin/fw-crawl", "bin/fw-recheck"]
+script-files = ["bin/fw-tui", "bin/fw-crawl", "bin/fw-recheck"]
