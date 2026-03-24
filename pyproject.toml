@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carwatch"
+dynamic = ["version"]
+description = "Monitor finn.no classifieds for changes"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "requests",
+    "beautifulsoup4",
+    "textual",
+    "rich",
+]
+
+# fw-tui is a bash venv-manager intended for dev use; for installed environments
+# we expose a direct Python entry point instead.
+[project.scripts]
+fw-tui = "finnwatch_tui:main"
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
+
+[tool.setuptools]
+# finnwatch_core and finnwatch_tui live in lib/ as top-level modules.
+py-modules = ["finnwatch_core", "finnwatch_tui"]
+package-dir = {"" = "lib"}
+# fw-crawl and fw-recheck are standalone Python scripts; their sys.path.insert
+# is harmless when installed because the modules are already on the Python path.
+script-files = ["bin/fw-crawl", "bin/fw-recheck"]

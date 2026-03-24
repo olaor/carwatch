@@ -1,0 +1,13 @@
+README.md
+VERSION
+pyproject.toml
+bin/fw-crawl
+bin/fw-recheck
+lib/finnwatch_core.py
+lib/finnwatch_tui.py
+lib/carwatch.egg-info/PKG-INFO
+lib/carwatch.egg-info/SOURCES.txt
+lib/carwatch.egg-info/dependency_links.txt
+lib/carwatch.egg-info/entry_points.txt
+lib/carwatch.egg-info/requires.txt
+lib/carwatch.egg-info/top_level.txt

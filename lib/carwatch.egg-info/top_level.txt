@@ -1,0 +1,2 @@
+finnwatch_core
+finnwatch_tui

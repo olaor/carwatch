@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - VERSION
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: echo "version=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # ── Python package ────────────────────────────────────────────────────────
+      - name: Build Python package
+        run: |
+          pip install build
+          python -m build
+          # Produces dist/carwatch-<version>-py3-none-any.whl and dist/carwatch-<version>.tar.gz
+
+      # ── Debian package ────────────────────────────────────────────────────────
+      - name: Build Debian package
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PKG_DIR="carwatch_${VERSION}_all"
+
+          mkdir -p "${PKG_DIR}/DEBIAN"
+          mkdir -p "${PKG_DIR}/usr/bin"
+          mkdir -p "${PKG_DIR}/usr/lib/python3/dist-packages"
+
+          # Library modules – installed into the system Python path so that
+          # the bin scripts can import them without any path manipulation.
+          cp lib/finnwatch_core.py "${PKG_DIR}/usr/lib/python3/dist-packages/"
+          cp lib/finnwatch_tui.py  "${PKG_DIR}/usr/lib/python3/dist-packages/"
+
+          # fw-crawl and fw-recheck contain a sys.path.insert that resolves to
+          # /usr/lib when the scripts live in /usr/bin – harmless, because
+          # finnwatch_core is already in dist-packages.
+          install -m 755 bin/fw-crawl   "${PKG_DIR}/usr/bin/fw-crawl"
+          install -m 755 bin/fw-recheck "${PKG_DIR}/usr/bin/fw-recheck"
+
+          # fw-tui is a venv-bootstrapping dev launcher; replace it with a
+          # minimal entry point that calls the installed module directly.
+          printf '#!/usr/bin/env python3\nfrom finnwatch_tui import main\nmain()\n' \
+            > "${PKG_DIR}/usr/bin/fw-tui"
+          chmod 755 "${PKG_DIR}/usr/bin/fw-tui"
+
+          cat > "${PKG_DIR}/DEBIAN/control" <<EOF
+Package: carwatch
+Version: ${VERSION}
+Architecture: all
+Maintainer: carwatch <noreply@github.com>
+Depends: python3 (>= 3.8), python3-requests, python3-bs4
+Recommends: python3-rich, python3-textual
+Description: Monitor finn.no classifieds for changes
+ Crawls finn.no search result pages and stores per-ad snapshots in a
+ local SQLite database. Detects field-level changes over time and
+ presents results in an interactive terminal UI.
+EOF
+
+          dpkg-deb --root-owner-group --build "${PKG_DIR}"
+          # Output: carwatch_<version>_all.deb
+
+      # ── GitHub release ────────────────────────────────────────────────────────
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.version.outputs.version }}"
+          name: "v${{ steps.version.outputs.version }}"
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            carwatch_${{ steps.version.outputs.version }}_all.deb
