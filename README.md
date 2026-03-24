@@ -4,6 +4,13 @@ Monitor finn.no classifieds for changes. Crawls search result pages, stores per-
 
 ## Changelog
 
+### 0.1.8 — 2026-03-25
+
+- fix(scraper): restore year/km fields in TUI by handling finn.no ad-server
+  `{key, value}` targeting dicts; unwrap single-element list values; add
+  English `"year"` and `"mileage"` keys to `_merge_attribute` pattern map;
+  call `_merge_attribute` for standalone key/value dicts visited by the walker
+
 ### 0.1.7 — 2026-03-25
 
 - feat(recheck): add `--max X` argument to `fw-recheck` to stop after processing X ads

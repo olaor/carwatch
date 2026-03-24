@@ -615,6 +615,11 @@ def _merge_known_fields(obj: dict, out: dict) -> None:
             if isinstance(attr, dict):
                 _merge_attribute(attr, out)
 
+    # ── Single-attribute objects {key: "...", value: "..."} ───────────────
+    # e.g. ad-server targeting dicts that the walker visits individually
+    if "key" in obj and ("value" in obj or "rawValue" in obj):
+        _merge_attribute(obj, out)
+
     # ── Key-info list (some FINN detail pages use this) ───────────────────
     if "keyInfo" in obj and isinstance(obj["keyInfo"], list):
         out.setdefault("key_info", obj["keyInfo"])
@@ -638,6 +643,10 @@ def _merge_attribute(attr: dict, out: dict) -> None:
     key_raw   = str(attr.get("key") or attr.get("label") or attr.get("id") or "").lower()
     value_raw = attr.get("value") or attr.get("rawValue")
 
+    # Unwrap single-element lists (finn.no ad-server targeting uses ["value"])
+    if isinstance(value_raw, list):
+        value_raw = value_raw[0] if value_raw else None
+
     if not key_raw or value_raw is None:
         return
 
@@ -645,8 +654,10 @@ def _merge_attribute(attr: dict, out: dict) -> None:
     attr_to_field: dict = {
         "km":            "mileage",
         "kilometerstand": "mileage",
+        "mileage":       "mileage",
         "årsmodell":     "year",
         "modellår":      "year",
+        "year":          "year",
         "drivstoff":     "fuel_type",
         "girkasse":      "transmission",
         "karosseri":     "body_type",
