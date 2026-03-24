@@ -61,18 +61,18 @@ jobs:
             > "${PKG_DIR}/usr/bin/fw-tui"
           chmod 755 "${PKG_DIR}/usr/bin/fw-tui"
 
-          cat > "${PKG_DIR}/DEBIAN/control" <<EOF
-Package: carwatch
-Version: ${VERSION}
-Architecture: all
-Maintainer: carwatch <noreply@github.com>
-Depends: python3 (>= 3.8), python3-requests, python3-bs4
-Recommends: python3-rich, python3-textual
-Description: Monitor finn.no classifieds for changes
- Crawls finn.no search result pages and stores per-ad snapshots in a
- local SQLite database. Detects field-level changes over time and
- presents results in an interactive terminal UI.
-EOF
+          {
+            echo "Package: carwatch"
+            echo "Version: ${VERSION}"
+            echo "Architecture: all"
+            echo "Maintainer: carwatch <noreply@github.com>"
+            echo "Depends: python3 (>= 3.8), python3-requests, python3-bs4"
+            echo "Recommends: python3-rich, python3-textual"
+            echo "Description: Monitor finn.no classifieds for changes"
+            echo " Crawls finn.no search result pages and stores per-ad snapshots in a"
+            echo " local SQLite database. Detects field-level changes over time and"
+            echo " presents results in an interactive terminal UI."
+          } > "${PKG_DIR}/DEBIAN/control"
 
           dpkg-deb --root-owner-group --build "${PKG_DIR}"
           # Output: carwatch_<version>_all.deb
